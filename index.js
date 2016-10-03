@@ -17,6 +17,7 @@ function S3BlobStore(opts) {
 
 function rmSlash(key) {
   if (key[0] === '/') {
+    debug('remove / from %s', key)
     key = key.slice(1)
   }
   return key
@@ -42,7 +43,7 @@ S3BlobStore.prototype.uploadParams = function(opts) {
   var contentType = opts.contentType;
 
   params.Bucket = params.Bucket || this.bucket;
-  params.Key = params.Key || key;
+  params.Key = rmSlash(params.Key || key);
 
   if (!contentType) {
     contentType = filename? mime.lookup(filename) : mime.lookup(opts.key)
@@ -86,7 +87,7 @@ S3BlobStore.prototype.createWriteStream = function(opts, s3opts, done) {
 
 S3BlobStore.prototype.remove = function(opts, done) {
   var key = typeof opts === 'string' ? opts : opts.key
-  this.s3.deleteObject({ Bucket: this.bucket, Key: key }, done)
+  this.s3.deleteObject({ Bucket: this.bucket, Key: rmSlash(key) }, done)
   return this;
 }
 
