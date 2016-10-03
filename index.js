@@ -15,6 +15,13 @@ function S3BlobStore(opts) {
   this.s3 = opts.client;
 }
 
+function rmSlash(key) {
+  if (key[0] === '/') {
+    key = key.slice(1)
+  }
+  return key
+}
+
 S3BlobStore.prototype.createReadStream = function(opts) {
   if (typeof opts === 'string') opts = {key: opts}
   var config = { client: this.s3, params: this.downloadParams(opts) };
@@ -85,7 +92,10 @@ S3BlobStore.prototype.remove = function(opts, done) {
 
 S3BlobStore.prototype.exists = function(opts, done) {
   if (typeof opts === 'string') opts = {key: opts}
-  debug('checking if %s exists in %s', opts.key, opts.bucket)
+
+  opts.key = rmSlash(opts.key)
+
+  debug('checking if %s exists in %s', opts.key, this.bucket)
   this.s3.headObject({ Bucket: this.bucket, Key: opts.key }, function(err, res){
     if (err && err.statusCode === 404) {
       debug("%s does not exist", opts.key)
